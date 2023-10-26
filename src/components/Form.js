@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
 
-const CBOR = require("cbor-web");
+const { CBOR } = require("cbor-web");
 // import cbor from 'cbor'
 // import CBOR from 'cbor-web'
 // import {} from '@simplewebauthn/server'
