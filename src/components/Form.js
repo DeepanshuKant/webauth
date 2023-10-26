@@ -75,8 +75,8 @@ const Form = ({ type }) => {
           (c) => c.charCodeAt(0)
         ),
         rp: {
-          name: "localhost",
-          id: "localhost",
+          name: "https://webauth-six.vercel.app/",
+          id: "https://webauth-six.vercel.app/",
         },
         user: {
           id: Uint8Array.from(userDetails.email, (c) => c.charCodeAt(0)),
