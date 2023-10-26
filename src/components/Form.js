@@ -103,7 +103,7 @@ const Form = ({ type }) => {
       // parse the string as an object
       const clientDataObj = JSON.parse(decodedClientData);
 
-      const decodedAttestationObj = CBOR.decode(
+      const decodedAttestationObj = CBOR?.decode(
         credential.response.attestationObject
       );
 
