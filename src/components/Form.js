@@ -83,7 +83,7 @@ const Form = ({ type }) => {
           (c) => c.charCodeAt(0)
         ),
         rp: {
-          name: "https://webauth-six.vercel.app/",
+          name: "webauth vercel app",
           id: "https://webauth-six.vercel.app/",
         },
         user: {
