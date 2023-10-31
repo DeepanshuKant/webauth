@@ -1,10 +1,17 @@
 import React from "react";
 import { useState } from "react";
-
-const { CBOR } = require("cbor-web");
-// import cbor from 'cbor'
-// import CBOR from 'cbor-web'
+import axios from "axios";
+// const { CBOR } = require("cbor-web");
+// import CBOR from "cbor";
+import { encode, decode } from "cborg";
+// import CBOR from "cbor-web";
 // import {} from '@simplewebauthn/server'
+
+function arrayBufferToBase64(arrayBuffer) {
+  const uint8Array = new Uint8Array(arrayBuffer);
+  let base64 = btoa(String.fromCharCode.apply(null, uint8Array));
+  return base64;
+}
 
 const Form = ({ type }) => {
   const [userName, setUserName] = useState("");
@@ -19,9 +26,9 @@ const Form = ({ type }) => {
       password: password,
     };
 
-    let credential = undefined;
-    let assertion = null;
-    let publicKeyCredentialRequestOptions = null;
+    let credential;
+    let assertion;
+    let publicKeyCredentialRequestOptions;
 
     try {
       publicKeyCredentialRequestOptions = {
@@ -59,6 +66,7 @@ const Form = ({ type }) => {
 
   const signUpHandler = async (e) => {
     e.preventDefault();
+
     const userDetails = {
       username: userName,
       email: email,
@@ -75,8 +83,8 @@ const Form = ({ type }) => {
           (c) => c.charCodeAt(0)
         ),
         rp: {
-          name: "https://webauth-six.vercel.app/",
-          id: "https://webauth-six.vercel.app/",
+          name: "localhost",
+          id: "localhost",
         },
         user: {
           id: Uint8Array.from(userDetails.email, (c) => c.charCodeAt(0)),
@@ -96,6 +104,7 @@ const Form = ({ type }) => {
       });
 
       const utf8Decoder = new TextDecoder("utf-8");
+
       const decodedClientData = utf8Decoder.decode(
         credential?.response?.clientDataJSON
       );
@@ -103,21 +112,38 @@ const Form = ({ type }) => {
       // parse the string as an object
       const clientDataObj = JSON.parse(decodedClientData);
 
-      const decodedAttestationObj = CBOR?.decode(
-        credential.response.attestationObject
-      );
+      // const decodedAttestationObj = CBOR.decode(
+      //   credential?.response?.attestationObject
+      // );
+
+      //CONVERT THE DATA TO JASON FORMAT AND CONSOLE LOG IT
+      // credential.response.attestationObject
+      // console.log(credential.response.attestationObject);
+
+      const data = {
+        dataNew: arrayBufferToBase64(credential.response.attestationObject),
+      };
+
+      const resp = await axios.post("http://localhost:4000/getDecoded", data);
+
+      const decodedAttestationObj = resp.data.data;
+
+      // const decodedAttestationObj = decode(
+      //   Buffer.from(credential?.response?.attestationObject?.buffer, "hex")
+      // );
 
       const { authData } = decodedAttestationObj;
+      // console.log(authData);
 
       const dataView = new DataView(new ArrayBuffer(2));
 
-      const idLenBytes = authData.slice(53, 55);
+      const idLenBytes = authData.data.slice(53, 55);
       idLenBytes.forEach((value, index) => dataView.setUint8(index, value));
 
       const credentialIdLength = dataView.getUint16();
 
       // get the credential ID
-      const credentialId = authData.slice(55, 55 + credentialIdLength);
+      const credentialId = authData.data.slice(55, 55 + credentialIdLength);
       //WHere to store the credentialId
       //Solve this problem
 
@@ -128,13 +154,29 @@ const Form = ({ type }) => {
       localStorage.setItem("credentialId", credentialId);
 
       // get the public key object
-      const publicKeyBytes = authData.slice(55 + credentialIdLength);
-
+      const publicKeyBytes = authData.data.slice(55 + credentialIdLength);
+      // console.log("Public Key Bytes: ", publicKeyBytes);
       // the publicKeyBytes are encoded again as CBOR
-      const publicKeyObject = CBOR.decode(publicKeyBytes.buffer);
+      // const publicKeyObject = decode(Buffer.from(publicKeyBytes.buffer, "hex"));
+      const dataAnother = {
+        dataNewAnother: arrayBufferToBase64(publicKeyBytes),
+        // dataNewAnother: publicKeyBytes?.buffer,
+      };
+
+      const resp2 = await axios.post(
+        "http://localhost:4000/getDecodedAnother",
+        dataAnother
+      );
+
+      const publicKeyObject = new Map(JSON.parse(resp2?.data?.data));
+      // console.log("resp2: ", resp2.data.data);
+
+      // const publicKeyObject = resp2.data.data;
+      console.log(publicKeyObject);
 
       alert("Signup Successful, Please login now.");
     } catch (error) {
+      console.log(error);
       alert(error.message + " Please try again");
     }
 
