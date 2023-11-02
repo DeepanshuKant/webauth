@@ -84,7 +84,8 @@ const Form = ({ type }) => {
         ),
         rp: {
           name: "webauth vercel app",
-          id: "https://webauth-six.vercel.app/",
+          // id: "https://webauth-six.vercel.app/",
+          id: "localhost",
         },
         user: {
           id: Uint8Array.from(userDetails.email, (c) => c.charCodeAt(0)),
@@ -172,7 +173,17 @@ const Form = ({ type }) => {
       // console.log("resp2: ", resp2.data.data);
 
       // const publicKeyObject = resp2.data.data;
-      console.log(publicKeyObject);
+      // console.log(publicKeyObject);
+
+      const createdUser = {
+        username: userName,
+        email: email,
+        password: password,
+        credentialId: credentialId,
+        publicKey: publicKeyObject,
+      };
+
+      console.log("createdUser: ", createdUser);
 
       alert("Signup Successful, Please login now.");
     } catch (error) {
@@ -187,7 +198,7 @@ const Form = ({ type }) => {
 
   return (
     <>
-      {console.log("navigator.credentials", navigator?.credentials)}
+      {/* {console.log("navigator.credentials", navigator?.credentials)} */}
       <div className="outer-form h-full">
         <h1 className="text-white font-bold text-xl mb-9 mt-3">{type}</h1>
         <form
