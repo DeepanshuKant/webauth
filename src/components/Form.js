@@ -55,6 +55,8 @@ const Form = ({ type }) => {
       assertion = await navigator.credentials.get({
         publicKey: publicKeyCredentialRequestOptions,
       });
+
+      console.log(assertion);
     } catch (error) {
       alert(error.message + " Please try again");
     }
@@ -104,6 +106,8 @@ const Form = ({ type }) => {
         publicKey: publicKeyCredentialCreationOptions,
       });
 
+      console.log(credential);
+
       const utf8Decoder = new TextDecoder("utf-8");
 
       const decodedClientData = utf8Decoder.decode(
@@ -112,7 +116,7 @@ const Form = ({ type }) => {
 
       // parse the string as an object
       const clientDataObj = JSON.parse(decodedClientData);
-
+      console.log(clientDataObj);
       // const decodedAttestationObj = CBOR.decode(
       //   credential?.response?.attestationObject
       // );
@@ -129,6 +133,7 @@ const Form = ({ type }) => {
 
       const decodedAttestationObj = resp.data.data;
 
+      console.log(decodedAttestationObj);
       // const decodedAttestationObj = decode(
       //   Buffer.from(credential?.response?.attestationObject?.buffer, "hex")
       // );
@@ -145,6 +150,7 @@ const Form = ({ type }) => {
 
       // get the credential ID
       const credentialId = authData.data.slice(55, 55 + credentialIdLength);
+      console.log(credentialId);
       //WHere to store the credentialId
       //Solve this problem
 
@@ -173,15 +179,17 @@ const Form = ({ type }) => {
       // console.log("resp2: ", resp2.data.data);
 
       // const publicKeyObject = resp2.data.data;
-      // console.log(publicKeyObject);
+      console.log(publicKeyObject);
 
       const createdUser = {
         username: userName,
         email: email,
         password: password,
         credentialId: credentialId,
-        publicKey: publicKeyObject,
+        publicKey: publicKeyObject.toString(),
       };
+
+      localStorage.setItem("user", JSON.stringify(createdUser));
 
       console.log("createdUser: ", createdUser);
 
