@@ -86,8 +86,8 @@ const Form = ({ type }) => {
         ),
         rp: {
           name: "webauth vercel app",
-          // id: "https://webauth-six.vercel.app/",
-          id: window.location.origin,
+          id: "https://webauth-six.vercel.app",
+          // id: window.location.origin,
           // id: "localhost",
         },
         user: {
