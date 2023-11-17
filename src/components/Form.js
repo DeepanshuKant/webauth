@@ -37,6 +37,7 @@ const Form = ({ type }) => {
 
     try {
       const credential = await axios.post(
+        // "http://localhost:4000/authenticationVerification",
         "https://webauth-server.onrender.com/authenticationVerification",
         {
           authentication: {
@@ -47,7 +48,7 @@ const Form = ({ type }) => {
         }
       );
 
-      console.log(credential);
+      // console.log(credential);
 
       if (
         credential?.data?.authenticationParsed?.authenticator?.flags
@@ -92,11 +93,12 @@ const Form = ({ type }) => {
 
     try {
       const credential = await axios.post(
+        // "http://localhost:4000/registrationVerification",
         "https://webauth-server.onrender.com/registrationVerification",
         { registration: JSON.stringify(registration) }
       );
 
-      localStorage.setItem(
+      document.localStorage.setItem(
         "credentialId",
         credential?.data?.registrationParsed?.credential
           ? JSON.stringify(credential.data.registrationParsed.credential)

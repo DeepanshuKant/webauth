@@ -1,6 +1,6 @@
 {
   "name": "webauth",
-  "proxy": "https://testing-gamma-steel.vercel.app/",
+  "proxy": "https://webauth-six.vercel.app/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
