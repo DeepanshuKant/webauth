@@ -37,7 +37,7 @@ const Form = ({ type }) => {
 
     try {
       const credential = await axios.post(
-        "http://localhost:4000/authenticationVerification",
+        "https://webauth-server.onrender.com/authenticationVerification",
         {
           authentication: {
             authenticationObj: authentication,
@@ -92,7 +92,7 @@ const Form = ({ type }) => {
 
     try {
       const credential = await axios.post(
-        "http://localhost:4000/registrationVerification",
+        "https://webauth-server.onrender.com/registrationVerification",
         { registration: JSON.stringify(registration) }
       );
 
