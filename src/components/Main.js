@@ -10,23 +10,6 @@ function classNames(...classes) {
 }
 
 export default function Main() {
-  async function getData() {
-    const pr = await client.isLocalAuthenticator();
-
-    return pr;
-  }
-
-  useEffect(() => {
-    if (!client.isAvailable()) {
-      alert("WebAuthn is Unavailable");
-      return;
-    }
-    const pr = getData();
-    pr.then((res) => {
-      alert("No fingerprint found. Please register one.");
-    });
-  }, []);
-
   return (
     <div className="w-full mx-auto max-w-md px-2 py-16 sm:px-0">
       <div className="outer p-5 bg-blue-500 rounded-2xl">
