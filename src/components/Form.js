@@ -2,120 +2,189 @@ import React from "react";
 import { useState } from "react";
 import { client } from "@passwordless-id/webauthn";
 import axios from "axios";
+// import crypto from "crypto";
 
 const Form = ({ type }) => {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [printCred, setPrintCred] = useState("");
+  const [alertMsg, setAlertMsg] = useState("");
 
   const loginHandler = async (e) => {
     e.preventDefault();
+    setAlertMsg("");
 
     const userDetails = {
       username: userName,
       password: password,
     };
 
-    const challenge = "56535b13-5d93-4194-a282-f234c1c24500";
-    const credentialUserId = JSON.parse(localStorage.getItem("credentialId"));
-
-    if (!credentialUserId.id) {
-      alert("Please register first");
+    if (!userDetails.username) {
+      setAlertMsg("Please enter username");
+      // alert("Please enter username");
       return;
     }
 
-    const authentication = await client.authenticate(
-      [credentialUserId.id],
-      challenge,
-      {
-        authenticatorType: "auto",
-        userVerification: "required",
-        timeout: 60000,
-      }
-    );
-
+    // const challenge = "56535b13-5d93-4194-a282-f234c1c24500";
     try {
+      const getCredentialUserId = await axios.post(
+        "https://webauth-server.onrender.com/getUserCredentialIdFromDb",
+        {
+          username: userDetails.username,
+        }
+      );
+
+      if (!getCredentialUserId?.data?.isFound) {
+        // alert(
+        //   "No user is created with this username yet, Please register first"
+        // );
+
+        setAlertMsg(
+          "No user is created with this username yet, Please register first"
+        );
+        return;
+      }
+
+      const challengeGet = await axios.get(
+        "https://webauth-server.onrender.com/generateChallenge"
+      );
+
+      const challenge = challengeGet?.data?.challenge;
+
+      const credentialId = getCredentialUserId?.data?.id;
+
+      const authentication = await client.authenticate(
+        [credentialId],
+        challenge,
+        {
+          authenticatorType: "auto",
+          userVerification: "required",
+          timeout: 60000,
+        }
+      );
+
       const credential = await axios.post(
-        // "http://localhost:4000/authenticationVerification",
         "https://webauth-server.onrender.com/authenticationVerification",
+        // "https://webauth-server.onrender.com/authenticationVerification",
         {
           authentication: {
             authenticationObj: authentication,
-            credentialKey: localStorage.getItem("credentialId"),
             challenge: challenge,
+            username: userDetails.username,
           },
         }
       );
 
       // console.log(credential);
 
-      if (
-        credential?.data?.authenticationParsed?.authenticator?.flags
-          ?.userVerified
-      ) {
-        alert("User verified, you are logged in");
-        setPrintCred(JSON.stringify(credential?.data));
-        return;
+      if (credential?.data?.isVerified) {
+        setPrintCred(
+          credential?.data?.authenticationParsed
+            ? JSON.stringify(credential.data.authenticationParsed)
+            : ""
+        );
+        // alert("User logged in successfully");
+        setAlertMsg("User logged in successfully");
+      } else {
+        // alert("User not verified");
+        setAlertMsg("User not verified");
       }
-
-      console.log(credential);
+      // console.log(credential);
     } catch (error) {
-      alert("Error in authentication");
+      setAlertMsg("Error in authentication");
+      // alert("Error in authentication");
+
       console.log(error);
     }
+    setUserName("");
+    setPassword("");
     console.log("Login");
   };
 
   const signUpHandler = async (e) => {
     e.preventDefault();
 
+    setAlertMsg("");
     const userDetails = {
       username: userName,
       email: email,
       password: password,
     };
 
-    const challenge = "a7c61ef9-dc23-4806-b486-2428938a547e";
-
-    const registration = await client.register(
-      userDetails.username,
-      challenge,
-      {
-        authenticatorType: "auto",
-        userVerification: "required",
-        timeout: 60000,
-        attestation: false,
-        userHandle: "recommended to set it to a random 64 bytes value",
-        debug: false,
-      }
-    );
+    if (!userDetails.username) {
+      // alert("Please enter username");
+      setAlertMsg("Please enter username");
+      return;
+    }
 
     try {
-      const credential = await axios.post(
-        // "http://localhost:4000/registrationVerification",
-        "https://webauth-server.onrender.com/registrationVerification",
-        { registration: JSON.stringify(registration) }
+      // const challenge = "a7c61ef9-dc23-4806-b486-2428938a547e";
+      const getCredentialUserId = await axios.post(
+        "https://webauth-server.onrender.com/getUserCredentialIdFromDb",
+        {
+          username: userDetails.username,
+        }
       );
 
-      document.localStorage.setItem(
-        "credentialId",
-        credential?.data?.registrationParsed?.credential
-          ? JSON.stringify(credential.data.registrationParsed.credential)
-          : null
-      );
-
-      if (credential?.data?.registrationParsed?.credential) {
-        setPrintCred(
-          JSON.stringify(credential.data.registrationParsed.credential)
+      if (getCredentialUserId?.data?.isFound) {
+        // alert(
+        //   "A user is already created with this username, Please login instead"
+        // );
+        setAlertMsg(
+          "A user is already created with this username, Please login instead"
         );
-        alert("User registered successfully");
         return;
+      }
+
+      const challengeGet = await axios.get(
+        "https://webauth-server.onrender.com/generateChallenge"
+      );
+
+      const challenge = challengeGet?.data?.challenge;
+      // console.log(challenge);
+
+      const registration = await client.register(
+        userDetails.username,
+        challenge,
+        {
+          authenticatorType: "auto",
+          userVerification: "required",
+          timeout: 60000,
+          attestation: false,
+          userHandle: "recommended to set it to a random 64 bytes value",
+          debug: false,
+        }
+      );
+
+      const credential = await axios.post(
+        "https://webauth-server.onrender.com/registrationVerification",
+        // "https://webauth-server.onrender.com/registrationVerification",
+        {
+          registration: JSON.stringify(registration),
+          challenge: challenge,
+        }
+      );
+
+      console.log(credential);
+
+      if (credential?.data?.isCreated) {
+        setPrintCred(
+          credential?.data?.registrationParsed
+            ? JSON.stringify(credential.data.registrationParsed)
+            : ""
+        );
+        // alert("User registered successfully, Please login now!");
+        setAlertMsg("User registered successfully, Please login now!");
       } else {
-        alert("User already registered");
+        // alert("User already registered with this username, Please login now!");
+        setAlertMsg(
+          "User already registered with this username, Please login now!"
+        );
       }
     } catch (error) {
-      alert("Error in registration");
+      setAlertMsg("Error in registration");
+      // alert("Error in registration");
       console.log(error);
     }
 
@@ -154,6 +223,7 @@ const Form = ({ type }) => {
           />
         </form>
       </div>
+      {alertMsg ? <h1>{alertMsg}</h1> : null}
       {printCred ? <h1>{printCred}</h1> : null}
     </>
   );
